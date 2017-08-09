@@ -1,6 +1,7 @@
 {
 	"name": "kiwicom/email-on-acid-sdk",
 	"description": "This library provides basic functionality for work with Email on Acid API",
+	"keywords" : ["Email on Acid","email testing","spam testing"],
 	"homepage": "https://www.kiwi.com",
 	"type": "library",
 	"license": ["BSD-3-Clause", "GPL-2.0", "GPL-3.0"],
@@ -25,4 +26,5 @@
 		"apigen/apigen": "5.0.0-RC4",
 		"roave/better-reflection": "@dev"
 	}
+
 }
