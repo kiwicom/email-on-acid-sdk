@@ -3,7 +3,7 @@ Email on Acid SDK
 
 ## Installation
 
-Get the source code from Github or via Composer (`repository/todo`).
+composer require "kiwicom/email-on-acid-sdk"
 
 ## Usage
 

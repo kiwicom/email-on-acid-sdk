@@ -1,5 +1,5 @@
 {
-	"name": "Email on Acid PHP SDK",
+	"name": "email-on-acid-sdk",
 	"description": "This library provides basic functionality for work with Email on Acid API",
 	"homepage": "https://www.kiwi.com",
 	"type": "library",
