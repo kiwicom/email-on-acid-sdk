@@ -1,0 +1,28 @@
+{
+	"name": "Email on Acid PHP SDK",
+	"description": "This library provides basic functionality for work with Email on Acid API",
+	"homepage": "https://www.kiwi.com",
+	"type": "library",
+	"license": ["BSD-3-Clause", "GPL-2.0", "GPL-3.0"],
+	"authors": [
+		{
+			"name": "Jan Bielik",
+			"homepage": "https://www.kiwi.com"
+		}
+	],
+	"autoload": {
+		"psr-4": {"EmailOnAcid\\": "src/"}
+	},
+	"autoload-dev": {
+		"psr-4": {"EmailOnAcid\\Tests\\": "tests/"}
+	},
+	"require": {
+		"php": ">=7.1",
+		"guzzlehttp/guzzle": "^6.2"
+	},
+	"require-dev": {
+		"phpunit/phpunit" : "6.2.2",
+		"apigen/apigen": "5.0.0-RC4",
+		"roave/better-reflection": "@dev"
+	}
+}
