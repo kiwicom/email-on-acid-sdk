@@ -23,7 +23,6 @@
 	},
 	"require-dev": {
 		"phpunit/phpunit" : "6.2.2",
-		"apigen/apigen": "5.0.0-RC4",
 		"roave/better-reflection": "@dev"
 	}
 
