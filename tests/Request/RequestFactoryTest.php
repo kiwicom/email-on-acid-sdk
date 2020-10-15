@@ -2,14 +2,15 @@
 
 namespace EmailOnAcid\Tests\Request;
 
+use BlastCloud\Guzzler\UsesGuzzler;
 use EmailOnAcid\Authentication;
 use EmailOnAcid\Exception\ApiRequestException;
 use EmailOnAcid\Exception\NotFoundException;
 use EmailOnAcid\Request\RequestFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -17,50 +18,54 @@ use Psr\Http\Message\StreamInterface;
 class RequestFactoryTest extends TestCase
 {
 
+    use UsesGuzzler;
+
 	private $api_key = 'sandbox';
 	private $password = 'sandbox';
+
+	public function testGetResponseWithInvalidJsonResponse(): void {
+
+	    $url = 'unittests';
+        $this->guzzler->expects($this->once())
+            ->get($url)
+            ->willRespond(
+                new Response(200, [], 'malformed json')
+            );
+
+        $factory = $this->getInstance($this->guzzler->getClient($this->getOptions()));
+        $this->expectException(ApiRequestException::class);
+        $factory->get($url, []);
+    }
 
 	public function testGet()
 	{
 		$url = 'unittests';
-		$client = $this->getMockBuilder(Client::class);
-		$client->setMethods(['request']);
-		$clientMalformedJson = $client->getMock();
-		$clientMalformedJson->method('request')->willReturn('malformed json');
-		$clientMalformedJson->expects($this->once())->method('request')->with(RequestFactory::METHOD_GET, $url, $this->getOptions());
 
-		$clientRequestException = $client->getMock();
-		$clientRequestException->method('request')->willThrowException($this->getMockBuilder(RequestException::class)->disableOriginalConstructor()->getMock());
+		$this->guzzler->expects($this->once())
+            ->get('unittests')
+            ->willRespond(
+                new Response(200, [], '{"hello":"ahoy"}')
+            );
 
-		$factory = $this->getInstance($clientMalformedJson);
-		try {
-			$factory->get($url, []);
-			$this->fail('Should be throwing exception on malformed json response');
-		} catch (ApiRequestException $requestException) {
-			$this->assertTrue(true);
-		}
-		$factory = $this->getInstance($clientRequestException);
-		try {
-			$factory->get($url, []);
-			$this->fail('Should be throwing exception due client setting');
-		} catch (ApiRequestException $requestException) {
-			$this->assertTrue(true);
-		}
-		$normalClient = $client->getMock();
-		$normalClient->method('request')->willReturn('{"hello":"ahoy"}');
-		$normalClient->expects($this->once())->method('request')->with(RequestFactory::METHOD_GET, $url, $this->getOptions());
-		$factory = $this->getInstance($normalClient);
-
+		$factory = $this->getInstance($this->guzzler->getClient($this->getOptions()));
 		$factory->get($url);
-
-
-		$normalClient = $client->getMock();
-		$normalClient->method('request')->willReturn('{"hello":"ahoy"}');
-		$normalClient->expects($this->once())->method('request')->with(RequestFactory::METHOD_GET, $url . '?test=1', $this->getOptions());
-		$factory = $this->getInstance($normalClient);
-
-		$factory->get($url, ['test' => 1]);
 	}
+
+	public function testGetRequestExceptionThrowsApiException(): void {
+
+        $url = 'unittests';
+
+        $this->guzzler->expects($this->once())
+            ->get('unittests')
+            ->willRespond(
+                new Response(400)
+            );
+
+        $factory = $this->getInstance($this->guzzler->getClient($this->getOptions()));
+
+        $this->expectException(ApiRequestException::class);
+        $factory->get($url);
+    }
 
 	private function getOptions(array $json = []): array
 	{
@@ -86,109 +91,157 @@ class RequestFactoryTest extends TestCase
 		);
 	}
 
+    public function testPostResponseWithInvalidJsonResponse(): void {
+
+        $url = 'unittests';
+        $this->guzzler->expects($this->once())
+            ->post($url)
+            ->willRespond(
+                new Response(200, [], 'malformed json')
+            );
+
+        $factory = $this->getInstance($this->guzzler->getClient($this->getOptions()));
+        $this->expectException(ApiRequestException::class);
+        $factory->post($url, []);
+    }
+
+    public function testPostRequestExceptionThrowsApiException(): void {
+
+        $url = 'unittests';
+
+        $this->guzzler->expects($this->once())
+            ->post('unittests')
+            ->willRespond(
+                new Response(400)
+            );
+
+        $factory = $this->getInstance($this->guzzler->getClient($this->getOptions()));
+
+        $this->expectException(ApiRequestException::class);
+        $factory->post($url);
+    }
+
 	public function testPost()
 	{
-		$url = 'unittests';
-		$client = $this->getMockBuilder(Client::class);
-		$client->setMethods(['request']);
-		$clientMalformedJson = $client->getMock();
-		$clientMalformedJson->method('request')->willReturn('malformed json');
-		$clientMalformedJson->expects($this->once())->method('request')->with(RequestFactory::METHOD_POST, $url, $this->getOptions());
+        $url = 'unittests';
 
-		$clientRequestException = $client->getMock();
-		$clientRequestException->method('request')->willThrowException($this->getMockBuilder(RequestException::class)->disableOriginalConstructor()->getMock());
-		$clientRequestException->expects($this->once())->method('request');
+        $this->guzzler->expects($this->once())
+            ->post('unittests')
+            ->willRespond(
+                new Response(200, [], '{"hello":"ahoy"}')
+            );
 
-		$factory = $this->getInstance($clientMalformedJson);
-		try {
-			$factory->post($url, []);
-			$this->fail('Should be throwing exception on malformed json response');
-		} catch (ApiRequestException $requestException) {
-			$this->assertTrue(true);
-		}
-		$factory = $this->getInstance($clientRequestException);
-		try {
-			$factory->post($url, []);
-			$this->fail('Should be throwing exception due client setting');
-		} catch (ApiRequestException $requestException) {
-			$this->assertTrue(true);
-		}
+        $factory = $this->getInstance($this->guzzler->getClient($this->getOptions()));
+        $factory->post($url);
 	}
 
-	public function testPut()
-	{
-		$url = 'unittests';
-		$client = $this->getMockBuilder(Client::class);
-		$client->setMethods(['request']);
-		$clientMalformedJson = $client->getMock();
-		$clientMalformedJson->method('request')->willReturn('malformed json');
-		$clientMalformedJson->expects($this->once())->method('request')->with(RequestFactory::METHOD_PUT, $url, $this->getOptions());
-		$clientMalformedJson->expects($this->once())->method('request');
 
-		$clientRequestException = $client->getMock();
-		$clientRequestException->method('request')->willThrowException($this->getMockBuilder(RequestException::class)->disableOriginalConstructor()->getMock());
-		$clientRequestException->expects($this->once())->method('request');
+    public function testPutResponseWithInvalidJsonResponse(): void {
 
-		$factory = $this->getInstance($clientMalformedJson);
-		try {
-			$factory->put($url, []);
-			$this->fail('Should be throwing exception on malformed json response');
-		} catch (ApiRequestException $requestException) {
-			$this->assertTrue(true);
-		}
-		$factory = $this->getInstance($clientRequestException);
-		try {
-			$factory->put($url, []);
-			$this->fail('Should be throwing exception due client setting');
-		} catch (ApiRequestException $requestException) {
-			$this->assertTrue(true);
-		}
-	}
+        $url = 'unittests';
+        $this->guzzler->expects($this->once())
+            ->put($url)
+            ->willRespond(
+                new Response(200, [], 'malformed json')
+            );
 
-	public function testDelete()
-	{
-		$url = 'unittests';
-		$json = ['test'=>123];
-		$client = $this->getMockBuilder(Client::class);
-		$client->setMethods(['request']);
-		$clientMalformedJson = $client->getMock();
-		$clientMalformedJson->method('request')->willReturn('{}');
-		$clientMalformedJson->expects($this->once())->method('request')->with(RequestFactory::METHOD_DELETE, $url, $this->getOptions(['test'=>123]));
-		$clientMalformedJson->expects($this->once())->method('request');
+        $factory = $this->getInstance($this->guzzler->getClient($this->getOptions()));
+        $this->expectException(ApiRequestException::class);
+        $factory->put($url, []);
+    }
 
-		$clientRequestException = $client->getMock();
-		$clientRequestException->method('request')->willThrowException($this->getMockBuilder(RequestException::class)->disableOriginalConstructor()->getMock());
-		$clientRequestException->expects($this->once())->method('request');
+    public function testPutRequestExceptionThrowsApiException(): void {
 
-		$factory = $this->getInstance($clientMalformedJson);
-		$factory->delete($url, $json);
+        $url = 'unittests';
+
+        $this->guzzler->expects($this->once())
+            ->put('unittests')
+            ->willRespond(
+                new Response(400)
+            );
+
+        $factory = $this->getInstance($this->guzzler->getClient($this->getOptions()));
+
+        $this->expectException(ApiRequestException::class);
+        $factory->put($url);
+    }
+
+    public function testPut()
+    {
+        $url = 'unittests';
+
+        $this->guzzler->expects($this->once())
+            ->put('unittests')
+            ->willRespond(
+                new Response(200, [], '{"hello":"ahoy"}')
+            );
+
+        $factory = $this->getInstance($this->guzzler->getClient($this->getOptions()));
+        $factory->put($url);
+    }
 
 
-		$factory = $this->getInstance($clientRequestException);
-		try {
-			$factory->delete($url, []);
-			$this->fail('Should be throwing exception due client setting');
-		} catch (ApiRequestException $requestException) {
-			$this->assertTrue(true);
-		}
-	}
+
+
+
+
+
+    public function testDeleteResponseWithInvalidJsonResponse(): void {
+
+        $url = 'unittests';
+        $this->guzzler->expects($this->once())
+            ->delete($url)
+            ->willRespond(
+                new Response(200, [], 'malformed json')
+            );
+
+        $factory = $this->getInstance($this->guzzler->getClient($this->getOptions()));
+        $this->expectException(ApiRequestException::class);
+        $factory->delete($url, []);
+    }
+
+    public function testDeleteRequestExceptionThrowsApiException(): void {
+
+        $url = 'unittests';
+
+        $this->guzzler->expects($this->once())
+            ->delete('unittests')
+            ->willRespond(
+                new Response(400)
+            );
+
+        $factory = $this->getInstance($this->guzzler->getClient($this->getOptions()));
+
+        $this->expectException(ApiRequestException::class);
+        $factory->delete($url);
+    }
+
+    public function testDelete()
+    {
+        $url = 'unittests';
+
+        $this->guzzler->expects($this->once())
+            ->delete('unittests')
+            ->willRespond(
+                new Response(200, [], '{"hello":"ahoy"}')
+            );
+
+        $factory = $this->getInstance($this->guzzler->getClient($this->getOptions()));
+        $factory->delete($url);
+    }
 
 	public function testObjectResponse()
 	{
 
-		$url = 'unittests?';
-		$client = $this->getMockBuilder(Client::class);
-		$client->setMethods(['request']);
-		$clientMock = $client->getMock();
+        $url = 'unittests';
+	    $client = $this->guzzler->getClient();
+	    $this->guzzler->expects($this->once())
+            ->get($url . '?test=5')
+            ->willRespond(
+                new Response(200, [], '{}')
+            );
 
-		$stream = $this->getMockBuilder(StreamInterface::class)->getMock();
-		$stream->method('getContents')->willReturn('{}');
-		$message = $this->getMockBuilder(MessageInterface::class)->getMock();
-		$message->method('getBody')->willReturn($stream);
-
-		$clientMock->method('request')->willReturn($message);
-
-		$requestFactory = $this->getInstance($clientMock);
+		$requestFactory = $this->getInstance($client);
 		$result = $requestFactory->get($url, ['test' => 5]);
 
 		$this->assertSame([], $result);
@@ -199,14 +252,14 @@ class RequestFactoryTest extends TestCase
 	{
 		$url = 'unittests?';
 		$client = $this->getMockBuilder(Client::class);
-		$client->setMethods(['request']);
+		$client->onlyMethods(['request']);
 		$clientMock = $client->getMock();
 
 		$stream = $this->getMockBuilder(StreamInterface::class)->getMock();
 		$stream->method('getContents')->willReturn('{"error":{"name":"Not found","message":"is not found"}}');
 
 		$response = $this->getMockBuilder(ResponseInterface::class)
-			->setMethods(
+			->onlyMethods(
 				[
 					'getStatusCode',
 					'withStatus',
@@ -250,14 +303,14 @@ class RequestFactoryTest extends TestCase
 	{
 		$url = 'unittests?';
 		$client = $this->getMockBuilder(Client::class);
-		$client->setMethods(['request']);
+		$client->onlyMethods(['request']);
 		$clientMock = $client->getMock();
 
 		$stream = $this->getMockBuilder(StreamInterface::class)->getMock();
 		$stream->method('getContents')->willReturn('{error:{"name":"Not found","message":"is not found"}}');
 
 		$response = $this->getMockBuilder(ResponseInterface::class)
-			->setMethods(
+			->onlyMethods(
 				[
 					'getStatusCode',
 					'withStatus',
