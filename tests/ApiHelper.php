@@ -6,6 +6,8 @@ namespace EmailOnAcid\Tests;
 
 use EmailOnAcid\Request\RequestFactory;
 use EmailOnAcid\ServiceFactory;
+use PHPUnit\Framework\MockObject\MockBuilder;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 trait ApiHelper
@@ -13,7 +15,7 @@ trait ApiHelper
 	/**
 	 * @param string $expects
 	 * @param array $return
-	 * @return RequestFactory|\PHPUnit_Framework_MockObject_MockObject
+	 * @return RequestFactory|MockObject
 	 */
 	private function mockRequestFactory(string $expects, $return = []): RequestFactory
 	{
@@ -21,7 +23,7 @@ trait ApiHelper
 		/** @var TestCase $this */
 		$mock = $this->getMockBuilder(RequestFactory::class)
 			->disableOriginalConstructor()
-			->setMethods($methods)->getMock();
+			->onlyMethods($methods)->getMock();
 		foreach ($methods as $method) {
 			if ($method !== $expects) {
 				$mock->method($method)->willReturn($return);
@@ -38,7 +40,7 @@ trait ApiHelper
 	 * @param null|string $method
 	 * @param null|string $class
 	 * @param mixed $return
-	 * @return ServiceFactory|\PHPUnit_Framework_MockObject_MockObject
+	 * @return ServiceFactory|MockObject
 	 * @internal param array $methods
 	 */
 	private function mockServiceFactory(?string $method, ?string $class = null, $return = null): ServiceFactory
@@ -46,7 +48,7 @@ trait ApiHelper
 		/** @var TestCase $this */
 		$mockBuilder = $this->getMockBuilder(ServiceFactory::class)
 			->disableOriginalConstructor();
-		$mockBuilder->setMethods(['createEmailTestingService', 'createTestsService', 'createEmailClientsService', 'createSpamTestingService']);
+		$mockBuilder->onlyMethods(['createEmailTestingService', 'createTestsService', 'createEmailClientsService', 'createSpamTestingService']);
 		$mock = $mockBuilder->getMock();
 
 		$spamTestingMock = $this->getMockBuilder(\EmailOnAcid\SpamTesting\Service::class)
@@ -63,19 +65,19 @@ trait ApiHelper
 		if ($method) {
 			switch ($class) {
 				case Service::class:
-					$testMock->setMethods([$method]);
+					$testMock->onlyMethods([$method]);
 					$mockExpect = $testMock = $testMock->getMock();
 					break;
 				case \EmailOnAcid\SpamTesting\Service::class:
-					$spamTestingMock->setMethods([$method]);
+					$spamTestingMock->onlyMethods([$method]);
 					$mockExpect = $spamTestingMock = $spamTestingMock->getMock();
 					break;
 				case \EmailOnAcid\EmailClients\Service::class:
-					$emailClientsMock->setMethods([$method]);
+					$emailClientsMock->onlyMethods([$method]);
 					$mockExpect = $emailClientsMock = $emailClientsMock->getMock();
 					break;
 				case \EmailOnAcid\EmailTesting\Service::class:
-					$emailTestingMock->setMethods([$method]);
+					$emailTestingMock->onlyMethods([$method]);
 					$mockExpect = $emailTestingMock = $emailTestingMock->getMock();
 					break;
 			}
@@ -94,19 +96,19 @@ trait ApiHelper
 
 		$mock->method('createEmailTestingService')
 			->willReturn(
-				$emailTestingMock
+				$emailTestingMock instanceof MockBuilder ? $emailTestingMock->getMock() : $emailTestingMock
 			);
 		$mock->method('createTestsService')
 			->willReturn(
-				$testMock
+                $testMock instanceof MockBuilder ? $testMock->getMock() : $testMock
 			);
 		$mock->method('createEmailClientsService')
 			->willReturn(
-				$emailClientsMock
+                $emailClientsMock instanceof MockBuilder ? $emailClientsMock->getMock() : $emailClientsMock
 			);
 		$mock->method('createSpamTestingService')
 			->willReturn(
-				$spamTestingMock
+                $spamTestingMock instanceof MockBuilder ? $spamTestingMock->getMock() : $spamTestingMock
 			);
 
 		return $mock;

@@ -18,12 +18,13 @@
 		"psr-4": {"EmailOnAcid\\Tests\\": "tests/"}
 	},
 	"require": {
-		"php": ">=7.1",
-		"guzzlehttp/guzzle": "^6.2"
+		"php": ">=7.2",
+		"ext-json": "*",
+		"guzzlehttp/guzzle": "^6.0 || ^7.2"
 	},
 	"require-dev": {
-		"phpunit/phpunit" : "6.2.2",
-		"roave/better-reflection": "@dev"
+		"phpunit/phpunit" : "^8.5 || ^9.0",
+		"blastcloud/guzzler": "^1.6 || ^2.0"
 	}
 
 }

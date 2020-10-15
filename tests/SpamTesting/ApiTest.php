@@ -16,7 +16,7 @@ class ApiTest extends TestCase
 	public function testCreateSpamTest()
 	{
 		$new_spam_test = new NewSpamTest('test');
-		$spam_test = $this->getMockBuilder(SpamTestRequest::class)->disableOriginalConstructor()->setMethods(['jsonSerialize'])->getMock();
+		$spam_test = $this->getMockBuilder(SpamTestRequest::class)->disableOriginalConstructor()->onlyMethods(['jsonSerialize'])->getMock();
 		$spam_test->expects($this->once())->method('jsonSerialize');
 
 		$api = $this->mockSpamTestingApi(
